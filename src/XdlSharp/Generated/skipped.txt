@@ -1,0 +1,35 @@
+# Declarations of the bound headers that have no binding, and why.
+SDL3/SDL_assert.h: SDL_FILE: uses a compiler builtin
+SDL3/SDL_assert.h: SDL_FUNCTION: uses a compiler builtin
+SDL3/SDL_assert.h: SDL_LINE: uses a compiler builtin
+SDL3/SDL_bits.h: SDL_HasExactlyOneBitSet32: inline, not exported
+SDL3/SDL_bits.h: SDL_MostSignificantBitIndex32: inline, not exported
+SDL3/SDL_endian.h: SDL_BYTEORDER: uses a compiler builtin
+SDL3/SDL_endian.h: SDL_SwapFloat: inline, not exported
+SDL3/SDL_error.h: SDL_SetError: variadic
+SDL3/SDL_error.h: SDL_SetErrorV: takes a va_list
+SDL3/SDL_iostream.h: SDL_IOprintf: variadic
+SDL3/SDL_iostream.h: SDL_IOvprintf: takes a va_list
+SDL3/SDL_log.h: SDL_Log: variadic
+SDL3/SDL_log.h: SDL_LogCritical: variadic
+SDL3/SDL_log.h: SDL_LogDebug: variadic
+SDL3/SDL_log.h: SDL_LogError: variadic
+SDL3/SDL_log.h: SDL_LogInfo: variadic
+SDL3/SDL_log.h: SDL_LogMessage: variadic
+SDL3/SDL_log.h: SDL_LogMessageV: takes a va_list
+SDL3/SDL_log.h: SDL_LogTrace: variadic
+SDL3/SDL_log.h: SDL_LogVerbose: variadic
+SDL3/SDL_log.h: SDL_LogWarn: variadic
+SDL3/SDL_mutex.h: SDL_NO_THREAD_SAFETY_ANALYSIS: uses a compiler builtin
+SDL3/SDL_mutex.h: SDL_SCOPED_CAPABILITY: uses a compiler builtin
+SDL3/SDL_rect.h: SDL_PointInRect: inline, not exported
+SDL3/SDL_rect.h: SDL_PointInRectFloat: inline, not exported
+SDL3/SDL_rect.h: SDL_RectEmpty: inline, not exported
+SDL3/SDL_rect.h: SDL_RectEmptyFloat: inline, not exported
+SDL3/SDL_rect.h: SDL_RectToFRect: inline, not exported
+SDL3/SDL_rect.h: SDL_RectsEqual: inline, not exported
+SDL3/SDL_rect.h: SDL_RectsEqualEpsilon: inline, not exported
+SDL3/SDL_rect.h: SDL_RectsEqualFloat: inline, not exported
+SDL3/SDL_render.h: SDL_RenderDebugTextFormat: variadic
+SDL3/SDL_thread.h: SDL_BeginThreadFunction: a void *, not an integer, string or floating constant
+SDL3/SDL_thread.h: SDL_EndThreadFunction: a void *, not an integer, string or floating constant

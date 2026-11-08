@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <UsesXdlRelease>true</UsesXdlRelease>
+        <NativeChecksSource>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', 'native'))</NativeChecksSource>
+        <NativeChecksBuild>$([MSBuild]::NormalizeDirectory('$(BaseIntermediateOutputPath)', 'native'))</NativeChecksBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="NUnit" />
+        <PackageReference Include="NUnit.Analyzers" />
+        <PackageReference Include="NUnit3TestAdapter" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="NUnit.Framework" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\XdlSharp.Checks\XdlSharp.Checks.csproj" />
+    </ItemGroup>
+
+    <!-- The release's runtime for this machine, beside the tests. A glob in a target, because the release is fetched during the build. -->
+    <Target Name="CopyXdlRuntime" AfterTargets="Build">
+        <ItemGroup>
+            <_XdlRuntimeFile Include="$(XdlRuntimeDirectory)*" />
+        </ItemGroup>
+        <Error Condition="'@(_XdlRuntimeFile)' == ''" Text="The XDL release has no runtime for $(NETCoreSdkPortableRuntimeIdentifier) in $(XdlRuntimeDirectory)." />
+        <Copy SourceFiles="@(_XdlRuntimeFile)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    </Target>
+
+    <!-- The C side of the checks, compiled by the host C compiler. -->
+    <Target Name="BuildNativeChecks" AfterTargets="Build">
+        <Exec Command="cmake -S &quot;$(NativeChecksSource).&quot; -B &quot;$(NativeChecksBuild).&quot; -DCMAKE_BUILD_TYPE=Release &quot;-DXDL_INCLUDE_DIRECTORY=$(XdlIncludeDirectory).&quot;" StandardOutputImportance="low" />
+        <Exec Command="cmake --build &quot;$(NativeChecksBuild).&quot; --config Release" StandardOutputImportance="low" />
+        <ItemGroup>
+            <_NativeChecksLibrary Include="$(NativeChecksBuild)**/libxdlsharp_native.so;$(NativeChecksBuild)**/libxdlsharp_native.dylib;$(NativeChecksBuild)**/xdlsharp_native.dll" />
+        </ItemGroup>
+        <Copy SourceFiles="@(_NativeChecksLibrary)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    </Target>
+
+</Project>

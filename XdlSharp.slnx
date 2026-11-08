@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/XdlSharp/XdlSharp.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/XdlSharp.Checks/XdlSharp.Checks.csproj" />
+    <Project Path="tests/XdlSharp.Tests/XdlSharp.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/XdlSharp.Generator/XdlSharp.Generator.csproj" />
+  </Folder>
+</Solution>

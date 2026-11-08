@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- Checks shared by the NUnit tests on CoreCLR and the browser tests on Mono. -->
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\XdlSharp\XdlSharp.csproj" />
+    </ItemGroup>
+
+</Project>

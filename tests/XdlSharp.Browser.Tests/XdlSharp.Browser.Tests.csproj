@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+
+    <!--
+      Runs XdlSharp.Checks on Mono in the browser runtime, under Node, with the browser archives of the XDL release:
+      dotnet publish tests/XdlSharp.Browser.Tests and node bin/Release/net11.0/publish/wwwroot/main.mjs
+    -->
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <IsPackable>false</IsPackable>
+        <PublishTrimmed>false</PublishTrimmed>
+        <UsesXdlRelease>true</UsesXdlRelease>
+        <!-- XDL's WebGPU backend is built on the emdawnwebgpu port, which the link builds into a writable cache. -->
+        <WasmCachePath>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..', 'artifacts', 'em-cache'))</WasmCachePath>
+        <EmccExtraLDFlags>$(EmccExtraLDFlags) --use-port=emdawnwebgpu</EmccExtraLDFlags>
+    </PropertyGroup>
+
+    <!-- Paths, not globs: the release is fetched during the build, before the native link checks that they exist. -->
+    <ItemGroup>
+        <NativeFileReference Include="$(XdlBrowserDirectory)XDL3.a" />
+        <NativeFileReference Include="$(XdlBrowserDirectory)XDL3_image.a" />
+        <NativeFileReference Include="$(XdlBrowserDirectory)XDL3_ttf.a" />
+        <NativeFileReference Include="$(XdlBrowserDirectory)XDL3_mixer.a" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\XdlSharp.Checks\XdlSharp.Checks.csproj" />
+    </ItemGroup>
+
+    <!--
+      The C side of the checks, compiled by the Emscripten of the workload into xdlsharp_native.a, whose file name is its P/Invoke module.
+      It runs after the SDK has set up emcc and its environment, and before the P/Invoke table is generated from the files to link.
+    -->
+    <Target Name="BuildNativeChecks" AfterTargets="_PrepareForBrowserWasmBuildNative">
+        <PropertyGroup>
+            <_NativeChecksDirectory>$(IntermediateOutputPath)native/</_NativeChecksDirectory>
+            <_NativeChecksArchive>$(_NativeChecksDirectory)xdlsharp_native.a</_NativeChecksArchive>
+        </PropertyGroup>
+        <ItemGroup>
+            <_NativeChecksSource Include="../native/*.c" />
+            <_NativeChecksSource ObjectFile="$(_NativeChecksDirectory)%(Filename).o" />
+        </ItemGroup>
+        <MakeDir Directories="$(_NativeChecksDirectory)" />
+        <Exec Command="&quot;$(WasmClang)&quot; -c -O2 -std=c11 &quot;-I$(XdlIncludeDirectory).&quot; &quot;%(_NativeChecksSource.FullPath)&quot; -o &quot;%(_NativeChecksSource.ObjectFile)&quot;" EnvironmentVariables="@(WasmToolchainEnvVars)" />
+        <Delete Files="$(_NativeChecksArchive)" />
+        <Exec Command="&quot;$(EmscriptenUpstreamEmscriptenPath)emar&quot; rcs &quot;$(_NativeChecksArchive)&quot; @(_NativeChecksSource->'&quot;%(ObjectFile)&quot;', ' ')" EnvironmentVariables="@(WasmToolchainEnvVars)" />
+        <ItemGroup>
+            <_WasmNativeFileForLinking Include="$(_NativeChecksArchive)" />
+        </ItemGroup>
+    </Target>
+
+</Project>

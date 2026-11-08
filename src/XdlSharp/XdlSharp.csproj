@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <RootNamespace>XdlSharp</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="Generated/skipped.txt" />
+    </ItemGroup>
+
+</Project>
