@@ -2,10 +2,14 @@
 
     <PropertyGroup>
         <RootNamespace>XdlSharp</RootNamespace>
+        <Description>Low-level C# bindings for XDL $(XdlVersion), the altered SDL $(XdlSdlVersion), and for SDL_image, SDL_ttf and SDL_mixer built against it. The native libraries are in XdlSharp.Native.&lt;rid&gt;.</Description>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseExpression>Zlib</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
         <None Include="Generated/skipped.txt" />
+        <None Include="../../README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 
 </Project>

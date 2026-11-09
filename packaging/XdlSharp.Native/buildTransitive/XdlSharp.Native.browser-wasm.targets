@@ -1,0 +1,14 @@
+<Project>
+    <!--
+      The browser runtime links the archives into dotnet.native.wasm instead of loading them, and each archive's file name is its
+      P/Invoke module, such as XDL3. XDL's WebGPU backend is built on Emscripten's emdawnwebgpu port, which the link fetches and builds
+      into the Emscripten cache, so WasmCachePath must name a writable cache.
+    -->
+    <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
+        <NativeFileReference Include="$(MSBuildThisFileDirectory)native/*.a" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
+        <EmccExtraLDFlags>$(EmccExtraLDFlags) --use-port=emdawnwebgpu</EmccExtraLDFlags>
+    </PropertyGroup>
+</Project>

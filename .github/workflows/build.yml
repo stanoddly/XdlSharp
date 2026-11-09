@@ -1,0 +1,150 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+  # Release runs this workflow with the version to pack, and publishes its packages.
+  workflow_call:
+    inputs:
+      version:
+        description: The version of the packages, <SDL version>.<N>. Without it the version is marked local.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    name: Generate, test and pack
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install the .NET 11 preview SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
+
+      # The checked-in bindings are generated with clang 22, and another clang can print the AST differently.
+      - name: Install clang 22
+        run: |
+          wget -qO llvm.sh https://apt.llvm.org/llvm.sh
+          sudo bash llvm.sh 22
+
+      - name: Check that the generated code is current
+        run: dotnet run --project tools/XdlSharp.Generator -- --check --clang clang-22
+
+      - name: Test
+        run: dotnet test tests/XdlSharp.Tests
+
+      - name: Pack
+        env:
+          VERSION: ${{ inputs.version }}
+        run: tools/pack.sh artifacts/packages "$VERSION"
+
+      - name: Upload the packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: packages
+          path: artifacts/packages
+          if-no-files-found: error
+
+  browser:
+    name: Test in the browser runtime
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install the .NET 11 preview SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Install the wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      - name: Publish the browser tests
+        run: dotnet publish tests/XdlSharp.Browser.Tests
+
+      - name: Run the browser tests
+        working-directory: tests/XdlSharp.Browser.Tests/bin/Release/net11.0/publish/wwwroot
+        run: node main.mjs
+
+  # The packages as an app restores them, on each platform that has a hosted runner. osx-x64 and win-arm64 have none.
+  packages:
+    name: Run the packages on ${{ matrix.os }}
+    needs: desktop
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download the packages
+        uses: actions/download-artifact@v8
+        with:
+          name: packages
+          path: packages
+
+      - name: Install the .NET 11 preview SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Run the packages
+        shell: bash
+        run: |
+          version=$(basename packages/XdlSharp.[0-9]*.nupkg .nupkg)
+          dotnet run --project tests/XdlSharp.Package.Tests "-p:XdlSharpPackageVersion=${version#XdlSharp.}" "-p:RestoreAdditionalProjectSources=$GITHUB_WORKSPACE/packages"
+
+  packages-browser:
+    name: Run the packages in the browser runtime
+    needs: desktop
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download the packages
+        uses: actions/download-artifact@v8
+        with:
+          name: packages
+          path: packages
+
+      - name: Install the .NET 11 preview SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Install the wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      - name: Publish the packages in a browser app
+        run: |
+          version=$(basename packages/XdlSharp.[0-9]*.nupkg .nupkg)
+          dotnet publish tests/XdlSharp.Package.Browser.Tests "-p:XdlSharpPackageVersion=${version#XdlSharp.}" "-p:RestoreAdditionalProjectSources=$GITHUB_WORKSPACE/packages"
+
+      # The archives are linked into dotnet.native.wasm, so a copy in the output means the package puts them where NuGet copies files.
+      - name: Check that no archive is in the published app
+        run: |
+          if find tests/XdlSharp.Package.Browser.Tests/bin/Release/net11.0/publish -name '*.a' | grep .; then
+            exit 1
+          fi
+
+      - name: Run the browser app
+        working-directory: tests/XdlSharp.Package.Browser.Tests/bin/Release/net11.0/publish/wwwroot
+        run: node main.mjs

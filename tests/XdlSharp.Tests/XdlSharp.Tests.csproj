@@ -4,7 +4,7 @@
         <IsPackable>false</IsPackable>
         <UsesXdlRelease>true</UsesXdlRelease>
         <NativeChecksSource>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', 'native'))</NativeChecksSource>
-        <NativeChecksBuild>$([MSBuild]::NormalizeDirectory('$(BaseIntermediateOutputPath)', 'native'))</NativeChecksBuild>
+        <NativeChecksBuild>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(BaseIntermediateOutputPath)', 'native'))</NativeChecksBuild>
     </PropertyGroup>
 
     <ItemGroup>

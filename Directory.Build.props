@@ -10,7 +10,18 @@
     <!-- The XDL release in XDL_VERSION, which tools/XdlRelease.proj downloads and unpacks into artifacts/xdl/<version>. -->
     <PropertyGroup>
         <XdlVersion>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)XDL_VERSION').Trim())</XdlVersion>
+        <XdlSdlVersion>$(XdlVersion.Split('-')[0])</XdlSdlVersion>
         <XdlReleaseDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', 'artifacts', 'xdl', '$(XdlVersion)'))</XdlReleaseDirectory>
         <XdlIncludeDirectory>$(XdlReleaseDirectory)include/</XdlIncludeDirectory>
+    </PropertyGroup>
+
+    <!-- A release passes -p:Version=<SDL version>.<N>; any other pack is marked local, so it never passes for a release. -->
+    <PropertyGroup>
+        <VersionPrefix>$(XdlSdlVersion).0</VersionPrefix>
+        <VersionSuffix>local</VersionSuffix>
+        <Authors>stanoddly</Authors>
+        <RepositoryUrl>https://github.com/stanoddly/XDLSharp</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/stanoddly/XDLSharp</PackageProjectUrl>
+        <PackageTags>xdl;sdl;sdl3;bindings;interop</PackageTags>
     </PropertyGroup>
 </Project>

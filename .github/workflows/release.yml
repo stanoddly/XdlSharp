@@ -1,0 +1,132 @@
+name: Release
+
+# Publishes each push to main on nuget.org as <SDL version>.<N> and tags it v<version>. N is one more than the highest N tagged for that
+# SDL version, so it starts at 1. A failed release is run again by hand: the push skips packages that nuget.org already has.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Two runs at once would take the same N. By default a new run cancels a pending one, so its merge would have no release of its own.
+concurrency:
+  group: release
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  resolve:
+    # A run started from another branch would release unreviewed code.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      # A shallow checkout has no tags, so every run would take N = 1.
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Find the version
+        id: version
+        run: |
+          sdl_version=$(cut -d- -f1 XDL_VERSION)
+          # The queue does not keep the order of the runs. A later commit released for the same SDL version contains this one, so this
+          # release would publish older code as a newer version.
+          released=$(git tag --contains HEAD "v$sdl_version.*")
+          if [[ -n "$released" ]]; then
+            echo "Released already in ${released//$'\n'/, }."
+            exit 0
+          fi
+
+          last=0
+          for tag in $(git tag --list "v$sdl_version.*"); do
+            n=${tag#"v$sdl_version."}
+            if [[ "$n" =~ ^[0-9]+$ ]] && (( n > last )); then
+              last=$n
+            fi
+          done
+          echo "version=$sdl_version.$((last + 1))" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: resolve
+    if: needs.resolve.outputs.version != ''
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+
+  # Without a checkout or contents: write, so the steps that can get a push key from nuget.org hold no token that writes to the repository.
+  publish:
+    needs: [resolve, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      # Trusted Publishing: nuget.org exchanges this workflow's OIDC token for a short-lived API key.
+      id-token: write
+    env:
+      VERSION: ${{ needs.resolve.outputs.version }}
+
+    steps:
+      - name: Download the packages
+        uses: actions/download-artifact@v8
+        with:
+          name: packages
+          path: packages
+
+      # A tag push that failed after the packages were published leaves N untagged, and the next merge would take it again. The push would
+      # skip every package nuget.org has as a duplicate, and the tag would name a commit whose code is not on nuget.org.
+      - name: Check that nuget.org has no other commit as this version
+        run: |
+          for package in packages/*.nupkg; do
+            id=$(basename "$package" ".$VERSION.nupkg")
+            id=${id,,}
+            status=$(curl -sS -o nuspec -w '%{http_code}' "https://api.nuget.org/v3-flatcontainer/$id/$VERSION/$id.nuspec")
+            if [[ "$status" == 200 ]] && ! grep -q "commit=\"$GITHUB_SHA\"" nuspec; then
+              echo "nuget.org has $id $VERSION from another commit. Tag that commit v$VERSION, then run Release on main again, not only its failed jobs." >&2
+              exit 1
+            elif [[ "$status" != 200 && "$status" != 404 ]]; then
+              echo "nuget.org answered $status for $id $VERSION." >&2
+              exit 1
+            fi
+          done
+
+      - name: Install the .NET 11 preview SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Log in to nuget.org
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: stanoddly
+
+      - name: Push the packages
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push "packages/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+  # After the push, so a tag always names a published version.
+  tag:
+    needs: [resolve, publish]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: v${{ needs.resolve.outputs.version }}
+
+    steps:
+      # A rerun after the tag was created finds it on this commit.
+      - name: Tag the release
+        run: |
+          tagged=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" -q .object.sha 2>/dev/null || true)
+          if [[ "$tagged" == "$GITHUB_SHA" ]]; then
+            echo "$TAG is on this commit already."
+          else
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA"
+          fi
