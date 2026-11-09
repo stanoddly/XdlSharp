@@ -12,6 +12,8 @@
         <XdlTarget>$(XdlRuntimeIdentifier)</XdlTarget>
         <XdlTarget Condition="'$(XdlRuntimeIdentifier)' == 'browser-wasm'">browser-wasm-net11</XdlTarget>
         <XdlReleaseTargets>$(XdlTarget)</XdlReleaseTargets>
+        <!-- XDL's zlib license and the licenses of the third-party code in its libraries. -->
+        <PackageLicenseFile>THIRD-PARTY-NOTICES.txt</PackageLicenseFile>
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
         <!-- The package has no lib folder, so it suits every target framework. -->

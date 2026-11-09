@@ -79,3 +79,7 @@ To pack locally, run `tools/pack.sh <output> [version]`. Without a version, the 
 - `SDL_main.h` is not bound: `SDL.h` does not include it.
 - `SDL_vulkan.h` is not bound: `SDL.h` does not include it, and `VkSurfaceKHR` is a pointer on 64-bit targets but a `uint64_t` on wasm32.
 - `wchar_t*` is `nint`, because `wchar_t` is 2 bytes on Windows and 4 elsewhere.
+
+## License
+
+XdlSharp uses the zlib license, as XDL does. See [LICENSE](LICENSE). Each `XdlSharp.Native.<rid>` package carries the release's `THIRD-PARTY-NOTICES.txt` as its license: XDL's license and the licenses of the third-party code in its libraries.
