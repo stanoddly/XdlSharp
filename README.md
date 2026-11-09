@@ -10,6 +10,14 @@ SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO);
 Pointer<SDL_Window> window = SDL_CreateWindow("Title"u8, 640, 480, SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
 ```
 
+## Packages
+
+- `XdlSharp` holds the bindings. It is the same for every platform and holds no native library.
+- `XdlSharp.Native.<rid>` holds XDL's runtime for one platform, from the XDL release: `linux-x64`, `linux-arm64`, `osx-x64`, `osx-arm64`, `win-x64`, `win-arm64` or `browser-wasm`. An app references the packages of the platforms it runs on.
+- `XdlSharp.Native.browser-wasm` links its archives into `dotnet.native.wasm` and adds `--use-port=emdawnwebgpu` to the link. The link builds that Emscripten port into the Emscripten cache, and the workload's own cache is read-only, so set `WasmCachePath` to a writable directory.
+
+The version is the SDL version and a release number, such as `3.4.20.1`. The package description names the XDL release, such as `3.4.20-4`.
+
 ## Mapping
 
 - Functions, constants, hints and property names of all four libraries are static members of `XdlSharp.Xdl`; types are in `XdlSharp`. Each function loads from its own library: `IMG_` functions from `XDL3_image`, and so on.
@@ -27,7 +35,7 @@ Pointer<SDL_Window> window = SDL_CreateWindow("Title"u8, 640, 480, SDL_WindowFla
 
 ## XDL release
 
-`XDL_VERSION` pins the XDL release. Building the generator or a test project runs `tools/XdlRelease.proj`, which downloads that release's headers, the runtime for this machine and the browser archives into `artifacts/xdl/<version>`.
+`XDL_VERSION` pins the XDL release. Building the generator or a test project runs `tools/XdlRelease.proj`, which downloads that release's headers, the runtime for this machine and the browser archives into `artifacts/xdl/<version>`. Packing a native package downloads the runtime it packs.
 
 ## Generating
 
@@ -56,6 +64,14 @@ In the browser runtime they run on Mono under Node. The release archives and `te
 dotnet publish tests/XdlSharp.Browser.Tests
 cd tests/XdlSharp.Browser.Tests/bin/Release/net11.0/publish/wwwroot && node main.mjs
 ```
+
+## Releasing
+
+The Build workflow runs on every pull request. It checks the generated code with clang 22, runs the tests on the desktop and in the browser, and packs the packages.
+
+The Release workflow publishes every push to `main`. For SDL 3.4.20, the first release is `3.4.20.1`, and each later one adds 1 to the highest `v3.4.20.<N>` tag. The workflow pushes the packages to nuget.org through Trusted Publishing, and then tags the commit `v<version>`.
+
+To pack locally, run `tools/pack.sh <output> [version]`. Without a version, the packages are marked `local`, such as `3.4.20-local`.
 
 ## Limits
 

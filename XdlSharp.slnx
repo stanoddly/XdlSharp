@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/packaging/">
+    <Project Path="packaging/XdlSharp.Native/XdlSharp.Native.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/XdlSharp/XdlSharp.csproj" />
   </Folder>

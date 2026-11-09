@@ -1,0 +1,99 @@
+name: Release
+
+# Publishes each push to main on nuget.org as <SDL version>.<N> and tags it v<version>. N is one more than the highest N tagged for that
+# SDL version, so it starts at 1. A failed release is run again by hand: the push skips packages that nuget.org already has.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Two runs at once would take the same N.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    # A run started from another branch would release unreviewed code.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      # A shallow checkout has no tags, so every run would take N = 1.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find the version
+        id: version
+        run: |
+          if [[ -n "$(git tag --points-at HEAD 'v*')" ]]; then
+            echo "$(git tag --points-at HEAD 'v*') is released already."
+            exit 0
+          fi
+
+          sdl_version=$(cut -d- -f1 XDL_VERSION)
+          last=0
+          for tag in $(git tag --list "v$sdl_version.*"); do
+            n=${tag#"v$sdl_version."}
+            if [[ "$n" =~ ^[0-9]+$ ]] && (( n > last )); then
+              last=$n
+            fi
+          done
+          echo "version=$sdl_version.$((last + 1))" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: resolve
+    if: needs.resolve.outputs.version != ''
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+
+  publish:
+    needs: [resolve, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      # Trusted Publishing: nuget.org exchanges this workflow's OIDC token for a short-lived API key.
+      id-token: write
+    env:
+      VERSION: ${{ needs.resolve.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: packages
+
+      - name: Install the .NET 11 preview SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Log in to nuget.org
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: stanoddly
+
+      - name: Push the packages
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push "packages/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      # After the push, so a tag always names a published version.
+      - name: Tag the release
+        run: |
+          git tag "v$VERSION" "$GITHUB_SHA"
+          git push origin "v$VERSION"

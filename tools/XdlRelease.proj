@@ -1,8 +1,8 @@
 <Project DefaultTargets="Fetch">
     <!--
-      Downloads the headers, the runtime of XdlRuntimeIdentifier and the browser archives of the XDL release in XDL_VERSION, and unpacks
-      them into artifacts/xdl/<version>: include/, runtimes/<rid>/native/ and runtimes/browser-wasm/native/.
-      Every project asks for all three, so a build fetches once.
+      Downloads the zips of the XDL release in XDL_VERSION that XdlTargets names, such as headers;linux-x64;browser-wasm-net11, and unpacks
+      them into artifacts/xdl/<version>: include/, runtimes/<rid>/native/ and THIRD-PARTY-NOTICES.txt, which every zip holds the same.
+      Projects that ask for the same targets share one fetch per build.
     -->
     <Import Project="../Directory.Build.props" />
 
@@ -12,9 +12,10 @@
     </PropertyGroup>
 
     <Target Name="Fetch">
-        <Error Condition="'$(XdlRuntimeIdentifier)' == ''" Text="Set XdlRuntimeIdentifier to the runtime to download, such as linux-x64." />
+        <Error Condition="'$(XdlTargets)' == ''" Text="Set XdlTargets to the XDL targets to download, such as headers;linux-x64." />
         <ItemGroup>
-            <_XdlZip Include="xdl3-headers.zip;xdl3-$(XdlRuntimeIdentifier).zip;xdl3-browser-wasm-net11.zip" />
+            <_XdlTarget Include="$(XdlTargets)" />
+            <_XdlZip Include="@(_XdlTarget->'xdl3-%(Identity).zip')" />
             <_MissingXdlZip Include="@(_XdlZip)" Condition="!Exists('$(_DownloadDirectory)%(Identity)')" />
         </ItemGroup>
 
