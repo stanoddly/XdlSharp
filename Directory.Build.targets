@@ -1,0 +1,11 @@
+<Project>
+    <PropertyGroup>
+        <XdlRuntimeDirectory>$(XdlReleaseDirectory)runtimes/$(NETCoreSdkPortableRuntimeIdentifier)/native/</XdlRuntimeDirectory>
+        <XdlBrowserDirectory>$(XdlReleaseDirectory)runtimes/browser-wasm/native/</XdlBrowserDirectory>
+    </PropertyGroup>
+
+    <!-- A project that sets UsesXdlRelease gets the release before it builds. -->
+    <Target Name="FetchXdlRelease" BeforeTargets="BeforeBuild" Condition="'$(UsesXdlRelease)' == 'true'">
+        <MSBuild Projects="$(MSBuildThisFileDirectory)tools/XdlRelease.proj" Properties="XdlRuntimeIdentifier=$(NETCoreSdkPortableRuntimeIdentifier)" />
+    </Target>
+</Project>

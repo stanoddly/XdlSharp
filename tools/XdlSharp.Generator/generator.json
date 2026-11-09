@@ -1,0 +1,230 @@
+{
+  "headers": [
+    "SDL3/SDL.h",
+    "XDL/XDL.h",
+    "SDL3_image/SDL_image.h",
+    "SDL3_ttf/SDL_ttf.h",
+    "SDL3_ttf/SDL_textengine.h",
+    "SDL3_mixer/SDL_mixer.h"
+  ],
+  "libraries": {
+    "SDL3": "XDL3",
+    "XDL": "XDL3",
+    "SDL3_image": "XDL3_image",
+    "SDL3_ttf": "XDL3_ttf",
+    "SDL3_mixer": "XDL3_mixer"
+  },
+  "excludedHeaders": [
+    "SDL3/SDL_begin_code.h",
+    "SDL3/SDL_close_code.h",
+    "SDL3/SDL_dlopennote.h",
+    "SDL3/SDL_oldnames.h",
+    "SDL3/SDL_platform_defines.h",
+    "SDL3/SDL_stdinc.h"
+  ],
+  "excludedHeaderFunctions": [
+    "SDL_malloc",
+    "SDL_calloc",
+    "SDL_realloc",
+    "SDL_free"
+  ],
+  "excludedMacros": {
+    "SDL_ASSERT_LEVEL": "depends on the flags that compile the C caller",
+    "SDL_NULL_WHILE_LOOP_CONDITION": "a helper for C statement macros"
+  },
+  "portedMacros": [
+    "SDL_PIXELFLAG",
+    "SDL_PIXELTYPE",
+    "SDL_PIXELORDER",
+    "SDL_PIXELLAYOUT",
+    "SDL_BITSPERPIXEL",
+    "SDL_BYTESPERPIXEL",
+    "SDL_ISPIXELFORMAT_INDEXED",
+    "SDL_ISPIXELFORMAT_PACKED",
+    "SDL_ISPIXELFORMAT_ARRAY",
+    "SDL_ISPIXELFORMAT_10BIT",
+    "SDL_ISPIXELFORMAT_FLOAT",
+    "SDL_ISPIXELFORMAT_ALPHA",
+    "SDL_ISPIXELFORMAT_FOURCC"
+  ],
+  "typedefConstants": {
+    "SDL_BlendMode": {
+      "prefixes": [
+        "SDL_BLENDMODE_"
+      ]
+    },
+    "SDL_GLContextFlag": {
+      "prefixes": [
+        "SDL_GL_CONTEXT_DEBUG_FLAG",
+        "SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG",
+        "SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG",
+        "SDL_GL_CONTEXT_RESET_ISOLATION_FLAG"
+      ],
+      "flags": true
+    },
+    "SDL_GLContextReleaseFlag": {
+      "prefixes": [
+        "SDL_GL_CONTEXT_RELEASE_BEHAVIOR_"
+      ]
+    },
+    "SDL_GLContextResetNotification": {
+      "prefixes": [
+        "SDL_GL_CONTEXT_RESET_NO_NOTIFICATION",
+        "SDL_GL_CONTEXT_RESET_LOSE_CONTEXT"
+      ]
+    },
+    "SDL_GLProfile": {
+      "prefixes": [
+        "SDL_GL_CONTEXT_PROFILE_"
+      ],
+      "flags": true
+    },
+    "SDL_GPUBufferUsageFlags": {
+      "prefixes": [
+        "SDL_GPU_BUFFERUSAGE_"
+      ],
+      "flags": true
+    },
+    "SDL_GPUColorComponentFlags": {
+      "prefixes": [
+        "SDL_GPU_COLORCOMPONENT_"
+      ],
+      "flags": true
+    },
+    "SDL_GPUShaderFormat": {
+      "prefixes": [
+        "SDL_GPU_SHADERFORMAT_",
+        "XDL_GPU_SHADERFORMAT_"
+      ],
+      "flags": true
+    },
+    "SDL_GPUTextureUsageFlags": {
+      "prefixes": [
+        "SDL_GPU_TEXTUREUSAGE_"
+      ],
+      "flags": true
+    },
+    "SDL_GlobFlags": {
+      "prefixes": [
+        "SDL_GLOB_"
+      ],
+      "flags": true
+    },
+    "SDL_HapticDirectionType": {
+      "prefixes": [
+        "SDL_HAPTIC_POLAR",
+        "SDL_HAPTIC_CARTESIAN",
+        "SDL_HAPTIC_SPHERICAL",
+        "SDL_HAPTIC_STEERING_AXIS"
+      ]
+    },
+    "SDL_HapticEffectType": {
+      "prefixes": [
+        "SDL_HAPTIC_"
+      ],
+      "exclude": [
+        "SDL_HAPTIC_INFINITY",
+        "SDL_HAPTIC_GAIN",
+        "SDL_HAPTIC_AUTOCENTER",
+        "SDL_HAPTIC_STATUS",
+        "SDL_HAPTIC_PAUSE",
+        "SDL_HAPTIC_POLAR",
+        "SDL_HAPTIC_CARTESIAN",
+        "SDL_HAPTIC_SPHERICAL",
+        "SDL_HAPTIC_STEERING_AXIS"
+      ],
+      "flags": true
+    },
+    "SDL_InitFlags": {
+      "prefixes": [
+        "SDL_INIT_"
+      ],
+      "flags": true
+    },
+    "SDL_Keycode": {
+      "prefixes": [
+        "SDLK_"
+      ]
+    },
+    "SDL_Keymod": {
+      "prefixes": [
+        "SDL_KMOD_"
+      ],
+      "flags": true
+    },
+    "SDL_MessageBoxButtonFlags": {
+      "prefixes": [
+        "SDL_MESSAGEBOX_BUTTON_"
+      ],
+      "flags": true
+    },
+    "SDL_MessageBoxFlags": {
+      "prefixes": [
+        "SDL_MESSAGEBOX_"
+      ],
+      "exclude": [
+        "SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT",
+        "SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT"
+      ],
+      "flags": true
+    },
+    "SDL_MouseButtonFlags": {
+      "prefixes": [
+        "SDL_BUTTON_LMASK",
+        "SDL_BUTTON_MMASK",
+        "SDL_BUTTON_RMASK",
+        "SDL_BUTTON_X1MASK",
+        "SDL_BUTTON_X2MASK"
+      ],
+      "flags": true
+    },
+    "SDL_PenInputFlags": {
+      "prefixes": [
+        "SDL_PEN_INPUT_"
+      ],
+      "flags": true
+    },
+    "SDL_SurfaceFlags": {
+      "prefixes": [
+        "SDL_SURFACE_"
+      ],
+      "flags": true
+    },
+    "SDL_TrayEntryFlags": {
+      "prefixes": [
+        "SDL_TRAYENTRY_"
+      ],
+      "flags": true
+    },
+    "SDL_WindowFlags": {
+      "prefixes": [
+        "SDL_WINDOW_"
+      ],
+      "exclude": [
+        "SDL_WINDOW_SURFACE_VSYNC_DISABLED",
+        "SDL_WINDOW_SURFACE_VSYNC_ADAPTIVE"
+      ],
+      "flags": true
+    },
+    "TTF_FontStyleFlags": {
+      "prefixes": [
+        "TTF_STYLE_"
+      ],
+      "flags": true
+    },
+    "TTF_SubStringFlags": {
+      "prefixes": [
+        "TTF_SUBSTRING_"
+      ],
+      "flags": true
+    }
+  },
+  "returnsParameter": {
+    "SDL_GetStringProperty": "default_value"
+  },
+  "retainedParameters": {
+    "SDL_SetScancodeName": [
+      "name"
+    ]
+  }
+}

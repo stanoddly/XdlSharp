@@ -1,0 +1,26 @@
+<Project DefaultTargets="Fetch">
+    <!--
+      Downloads the headers, the runtime of XdlRuntimeIdentifier and the browser archives of the XDL release in XDL_VERSION, and unpacks
+      them into artifacts/xdl/<version>: include/, runtimes/<rid>/native/ and runtimes/browser-wasm/native/.
+      Every project asks for all three, so a build fetches once.
+    -->
+    <Import Project="../Directory.Build.props" />
+
+    <PropertyGroup>
+        <XdlReleaseUrl>https://github.com/stanoddly/XDL/releases/download/v$(XdlVersion)/</XdlReleaseUrl>
+        <_DownloadDirectory>$(XdlReleaseDirectory)downloads/</_DownloadDirectory>
+    </PropertyGroup>
+
+    <Target Name="Fetch">
+        <Error Condition="'$(XdlRuntimeIdentifier)' == ''" Text="Set XdlRuntimeIdentifier to the runtime to download, such as linux-x64." />
+        <ItemGroup>
+            <_XdlZip Include="xdl3-headers.zip;xdl3-$(XdlRuntimeIdentifier).zip;xdl3-browser-wasm-net11.zip" />
+            <_MissingXdlZip Include="@(_XdlZip)" Condition="!Exists('$(_DownloadDirectory)%(Identity)')" />
+        </ItemGroup>
+
+        <!-- Downloaded under a temporary name, so an interrupted download is not taken for a complete one. -->
+        <DownloadFile SourceUrl="$(XdlReleaseUrl)%(_MissingXdlZip.Identity)" DestinationFolder="$(_DownloadDirectory)" DestinationFileName="%(_MissingXdlZip.Identity).part" Retries="3" Condition="'@(_MissingXdlZip)' != ''" />
+        <Move SourceFiles="@(_MissingXdlZip->'$(_DownloadDirectory)%(Identity).part')" DestinationFiles="@(_MissingXdlZip->'$(_DownloadDirectory)%(Identity)')" />
+        <Unzip SourceFiles="@(_XdlZip->'$(_DownloadDirectory)%(Identity)')" DestinationFolder="$(XdlReleaseDirectory)" SkipUnchangedFiles="true" />
+    </Target>
+</Project>

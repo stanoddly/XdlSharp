@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <IsPackable>false</IsPackable>
+        <UsesXdlRelease>true</UsesXdlRelease>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="generator.json" />
+    </ItemGroup>
+
+</Project>
