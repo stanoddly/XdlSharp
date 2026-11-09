@@ -1,5 +1,3 @@
-using System;
-
 namespace XdlSharp;
 
 public readonly struct Pointer<TValue> : IEquatable<Pointer<TValue>> where TValue : unmanaged
@@ -7,19 +5,19 @@ public readonly struct Pointer<TValue> : IEquatable<Pointer<TValue>> where TValu
     public static readonly Pointer<TValue> Null = default;
 
     private readonly unsafe TValue* _rawPointer;
-    
+
     public unsafe Pointer(TValue* rawPointer) => _rawPointer = rawPointer;
-    
+
     public static unsafe implicit operator TValue*(Pointer<TValue> pointer)
     {
         return pointer._rawPointer;
     }
-    
+
     public static unsafe implicit operator Pointer<TValue>(TValue* rawPointer)
     {
         return new Pointer<TValue>(rawPointer);
     }
-    
+
     public static unsafe explicit operator IntPtr(Pointer<TValue> pointer)
     {
         return (IntPtr)pointer._rawPointer;
@@ -31,7 +29,11 @@ public readonly struct Pointer<TValue> : IEquatable<Pointer<TValue>> where TValu
         {
             unsafe
             {
-                if (_rawPointer == null) throw new InvalidOperationException("Pointer is null.");
+                if (_rawPointer == null)
+                {
+                    throw new InvalidOperationException("Pointer is null.");
+                }
+
                 return ref *_rawPointer;
             }
         }
@@ -46,7 +48,10 @@ public readonly struct Pointer<TValue> : IEquatable<Pointer<TValue>> where TValu
     {
         unsafe
         {
-            if (_rawPointer == null) throw new InvalidOperationException("Pointer is null.");
+            if (_rawPointer == null)
+            {
+                throw new InvalidOperationException("Pointer is null.");
+            }
         }
     }
 
@@ -54,7 +59,10 @@ public readonly struct Pointer<TValue> : IEquatable<Pointer<TValue>> where TValu
     {
         unsafe
         {
-            if (_rawPointer == null) throw new InvalidOperationException(message);
+            if (_rawPointer == null)
+            {
+                throw new InvalidOperationException(message);
+            }
         }
     }
 

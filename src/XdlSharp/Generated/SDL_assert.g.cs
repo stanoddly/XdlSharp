@@ -28,10 +28,6 @@ public struct SDL_AssertData
 
 public static unsafe partial class Xdl
 {
-    public const int SDL_ASSERT_LEVEL = 2;
-    public static ReadOnlySpan<byte> SDL_ASSERT_FILE => "probe.c"u8;
-    public const int SDL_NULL_WHILE_LOOP_CONDITION = 0;
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SDL_AssertState SDL_ReportAssertion(Pointer<SDL_AssertData> data, ReadOnlySpan<byte> func, ReadOnlySpan<byte> file, int line)
     {

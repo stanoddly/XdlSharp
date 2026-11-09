@@ -60,6 +60,18 @@ internal sealed class AstReader(string includeDirectory, string probePath)
             model.MacroValues[name] = new MacroValue(type, integer, _probeStrings.GetValueOrDefault(name), _probeFloats.GetValueOrDefault(name));
         }
 
+        // typedef union _XEvent XEvent: C code names the type XEvent, so the binding does too, unless a typedef keeps the tag name.
+        foreach (IGrouping<RecordInfo, TypedefInfo> aliases in model.Typedefs
+            .Where(typedef => typedef.Underlying is CNamedType { IsTag: true } named && named.Name != typedef.Name && model.RecordsByTag.ContainsKey(named.Name))
+            .GroupBy(typedef => model.RecordsByTag[((CNamedType)typedef.Underlying).Name]))
+        {
+            if (aliases.Count() == 1 && !model.TypedefsByName.ContainsKey(aliases.Key.Tag!))
+            {
+                aliases.Key.CSharpName = aliases.Single().Name;
+                aliases.Key.CSpelling = aliases.Single().Name;
+            }
+        }
+
         return model;
     }
 

@@ -5,7 +5,7 @@ namespace XdlSharp.Generator;
 // Reads the output of clang -E -dD, which keeps each #define in place between line markers that name its file.
 internal static partial class MacroScanner
 {
-    public static (List<MacroInfo> ObjectLike, HashSet<string> Headers) Scan(string preprocessed, string includeDirectory)
+    public static (List<MacroInfo> Macros, HashSet<string> Headers) Scan(string preprocessed, string includeDirectory)
     {
         string root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(includeDirectory)) + "/";
         Dictionary<string, MacroInfo> macros = [];
@@ -41,22 +41,16 @@ internal static partial class MacroScanner
             }
 
             string name = define.Groups["name"].Value;
-            if (define.Groups["function"].Success)
-            {
-                macros.Remove(name);
-                continue;
-            }
-
             if (!macros.ContainsKey(name))
             {
                 order.Add(name);
             }
 
-            macros[name] = new MacroInfo(name, header, define.Groups["body"].Value.Trim());
+            macros[name] = new MacroInfo(name, header, define.Groups["body"].Value.Trim(), define.Groups["function"].Success);
         }
 
-        List<MacroInfo> objectLike = order.Distinct().Where(macros.ContainsKey).Select(name => macros[name]).ToList();
-        return (objectLike, headers);
+        List<MacroInfo> defined = order.Distinct().Where(macros.ContainsKey).Select(name => macros[name]).ToList();
+        return (defined, headers);
     }
 
     private static string? RelativeHeader(string fullPath, string root)

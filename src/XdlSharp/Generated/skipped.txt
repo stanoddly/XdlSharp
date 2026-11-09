@@ -1,15 +1,57 @@
 # Declarations of the bound headers that have no binding, and why.
+SDL3/SDL_assert.h: SDL_ASSERT_FILE: uses a compiler builtin
+SDL3/SDL_assert.h: SDL_ASSERT_LEVEL: depends on the flags that compile the C caller
+SDL3/SDL_assert.h: SDL_AssertBreakpoint: function-like macro
 SDL3/SDL_assert.h: SDL_FILE: uses a compiler builtin
 SDL3/SDL_assert.h: SDL_FUNCTION: uses a compiler builtin
 SDL3/SDL_assert.h: SDL_LINE: uses a compiler builtin
+SDL3/SDL_assert.h: SDL_NULL_WHILE_LOOP_CONDITION: a helper for C statement macros
+SDL3/SDL_assert.h: SDL_TriggerBreakpoint: function-like macro
+SDL3/SDL_assert.h: SDL_assert: function-like macro
+SDL3/SDL_assert.h: SDL_assert_always: function-like macro
+SDL3/SDL_assert.h: SDL_assert_paranoid: function-like macro
+SDL3/SDL_assert.h: SDL_assert_release: function-like macro
+SDL3/SDL_assert.h: SDL_disabled_assert: function-like macro
+SDL3/SDL_assert.h: SDL_enabled_assert: function-like macro
+SDL3/SDL_atomic.h: SDL_AtomicDecRef: function-like macro
+SDL3/SDL_atomic.h: SDL_AtomicIncRef: function-like macro
+SDL3/SDL_atomic.h: SDL_CPUPauseInstruction: function-like macro
+SDL3/SDL_atomic.h: SDL_CompilerBarrier: function-like macro
+SDL3/SDL_atomic.h: SDL_MemoryBarrierAcquire: function-like macro
+SDL3/SDL_atomic.h: SDL_MemoryBarrierRelease: function-like macro
+SDL3/SDL_audio.h: SDL_AUDIO_BITSIZE: function-like macro
+SDL3/SDL_audio.h: SDL_AUDIO_BYTESIZE: function-like macro
+SDL3/SDL_audio.h: SDL_AUDIO_FRAMESIZE: function-like macro
+SDL3/SDL_audio.h: SDL_AUDIO_ISBIGENDIAN: function-like macro
+SDL3/SDL_audio.h: SDL_AUDIO_ISFLOAT: function-like macro
+SDL3/SDL_audio.h: SDL_AUDIO_ISINT: function-like macro
+SDL3/SDL_audio.h: SDL_AUDIO_ISLITTLEENDIAN: function-like macro
+SDL3/SDL_audio.h: SDL_AUDIO_ISSIGNED: function-like macro
+SDL3/SDL_audio.h: SDL_AUDIO_ISUNSIGNED: function-like macro
+SDL3/SDL_audio.h: SDL_DEFINE_AUDIO_FORMAT: function-like macro
 SDL3/SDL_bits.h: SDL_HasExactlyOneBitSet32: inline, not exported
 SDL3/SDL_bits.h: SDL_MostSignificantBitIndex32: inline, not exported
 SDL3/SDL_endian.h: SDL_BYTEORDER: uses a compiler builtin
+SDL3/SDL_endian.h: SDL_FLOATWORDORDER: uses a compiler builtin
+SDL3/SDL_endian.h: SDL_Swap16: function-like macro
+SDL3/SDL_endian.h: SDL_Swap16BE: function-like macro
+SDL3/SDL_endian.h: SDL_Swap16LE: function-like macro
+SDL3/SDL_endian.h: SDL_Swap32: function-like macro
+SDL3/SDL_endian.h: SDL_Swap32BE: function-like macro
+SDL3/SDL_endian.h: SDL_Swap32LE: function-like macro
+SDL3/SDL_endian.h: SDL_Swap64: function-like macro
+SDL3/SDL_endian.h: SDL_Swap64BE: function-like macro
+SDL3/SDL_endian.h: SDL_Swap64LE: function-like macro
 SDL3/SDL_endian.h: SDL_SwapFloat: inline, not exported
+SDL3/SDL_endian.h: SDL_SwapFloatBE: function-like macro
+SDL3/SDL_endian.h: SDL_SwapFloatLE: function-like macro
+SDL3/SDL_error.h: SDL_InvalidParamError: function-like macro
 SDL3/SDL_error.h: SDL_SetError: variadic
 SDL3/SDL_error.h: SDL_SetErrorV: takes a va_list
+SDL3/SDL_error.h: SDL_Unsupported: function-like macro
 SDL3/SDL_iostream.h: SDL_IOprintf: variadic
 SDL3/SDL_iostream.h: SDL_IOvprintf: takes a va_list
+SDL3/SDL_keycode.h: SDL_SCANCODE_TO_KEYCODE: function-like macro
 SDL3/SDL_log.h: SDL_Log: variadic
 SDL3/SDL_log.h: SDL_LogCritical: variadic
 SDL3/SDL_log.h: SDL_LogDebug: variadic
@@ -20,8 +62,42 @@ SDL3/SDL_log.h: SDL_LogMessageV: takes a va_list
 SDL3/SDL_log.h: SDL_LogTrace: variadic
 SDL3/SDL_log.h: SDL_LogVerbose: variadic
 SDL3/SDL_log.h: SDL_LogWarn: variadic
+SDL3/SDL_mouse.h: SDL_BUTTON_MASK: function-like macro
+SDL3/SDL_mutex.h: SDL_ACQUIRE: function-like macro
+SDL3/SDL_mutex.h: SDL_ACQUIRED_AFTER: function-like macro
+SDL3/SDL_mutex.h: SDL_ACQUIRED_BEFORE: function-like macro
+SDL3/SDL_mutex.h: SDL_ACQUIRE_SHARED: function-like macro
+SDL3/SDL_mutex.h: SDL_ASSERT_CAPABILITY: function-like macro
+SDL3/SDL_mutex.h: SDL_ASSERT_SHARED_CAPABILITY: function-like macro
+SDL3/SDL_mutex.h: SDL_CAPABILITY: function-like macro
+SDL3/SDL_mutex.h: SDL_EXCLUDES: function-like macro
+SDL3/SDL_mutex.h: SDL_GUARDED_BY: function-like macro
 SDL3/SDL_mutex.h: SDL_NO_THREAD_SAFETY_ANALYSIS: uses a compiler builtin
+SDL3/SDL_mutex.h: SDL_PT_GUARDED_BY: function-like macro
+SDL3/SDL_mutex.h: SDL_RELEASE: function-like macro
+SDL3/SDL_mutex.h: SDL_RELEASE_GENERIC: function-like macro
+SDL3/SDL_mutex.h: SDL_RELEASE_SHARED: function-like macro
+SDL3/SDL_mutex.h: SDL_REQUIRES: function-like macro
+SDL3/SDL_mutex.h: SDL_REQUIRES_SHARED: function-like macro
+SDL3/SDL_mutex.h: SDL_RETURN_CAPABILITY: function-like macro
 SDL3/SDL_mutex.h: SDL_SCOPED_CAPABILITY: uses a compiler builtin
+SDL3/SDL_mutex.h: SDL_THREAD_ANNOTATION_ATTRIBUTE__: function-like macro
+SDL3/SDL_mutex.h: SDL_TRY_ACQUIRE: function-like macro
+SDL3/SDL_mutex.h: SDL_TRY_ACQUIRE_SHARED: function-like macro
+SDL3/SDL_pixels.h: SDL_COLORSPACECHROMA: function-like macro
+SDL3/SDL_pixels.h: SDL_COLORSPACEMATRIX: function-like macro
+SDL3/SDL_pixels.h: SDL_COLORSPACEPRIMARIES: function-like macro
+SDL3/SDL_pixels.h: SDL_COLORSPACERANGE: function-like macro
+SDL3/SDL_pixels.h: SDL_COLORSPACETRANSFER: function-like macro
+SDL3/SDL_pixels.h: SDL_COLORSPACETYPE: function-like macro
+SDL3/SDL_pixels.h: SDL_DEFINE_COLORSPACE: function-like macro
+SDL3/SDL_pixels.h: SDL_DEFINE_PIXELFORMAT: function-like macro
+SDL3/SDL_pixels.h: SDL_DEFINE_PIXELFOURCC: function-like macro
+SDL3/SDL_pixels.h: SDL_ISCOLORSPACE_FULL_RANGE: function-like macro
+SDL3/SDL_pixels.h: SDL_ISCOLORSPACE_LIMITED_RANGE: function-like macro
+SDL3/SDL_pixels.h: SDL_ISCOLORSPACE_MATRIX_BT2020_NCL: function-like macro
+SDL3/SDL_pixels.h: SDL_ISCOLORSPACE_MATRIX_BT601: function-like macro
+SDL3/SDL_pixels.h: SDL_ISCOLORSPACE_MATRIX_BT709: function-like macro
 SDL3/SDL_rect.h: SDL_PointInRect: inline, not exported
 SDL3/SDL_rect.h: SDL_PointInRectFloat: inline, not exported
 SDL3/SDL_rect.h: SDL_RectEmpty: inline, not exported
@@ -31,5 +107,26 @@ SDL3/SDL_rect.h: SDL_RectsEqual: inline, not exported
 SDL3/SDL_rect.h: SDL_RectsEqualEpsilon: inline, not exported
 SDL3/SDL_rect.h: SDL_RectsEqualFloat: inline, not exported
 SDL3/SDL_render.h: SDL_RenderDebugTextFormat: variadic
+SDL3/SDL_surface.h: SDL_MUSTLOCK: function-like macro
 SDL3/SDL_thread.h: SDL_BeginThreadFunction: a void *, not an integer, string or floating constant
+SDL3/SDL_thread.h: SDL_CreateThread: function-like macro
+SDL3/SDL_thread.h: SDL_CreateThreadWithProperties: function-like macro
 SDL3/SDL_thread.h: SDL_EndThreadFunction: a void *, not an integer, string or floating constant
+SDL3/SDL_timer.h: SDL_MS_TO_NS: function-like macro
+SDL3/SDL_timer.h: SDL_NS_TO_MS: function-like macro
+SDL3/SDL_timer.h: SDL_NS_TO_SECONDS: function-like macro
+SDL3/SDL_timer.h: SDL_NS_TO_US: function-like macro
+SDL3/SDL_timer.h: SDL_SECONDS_TO_NS: function-like macro
+SDL3/SDL_timer.h: SDL_US_TO_NS: function-like macro
+SDL3/SDL_version.h: SDL_VERSIONNUM: function-like macro
+SDL3/SDL_version.h: SDL_VERSIONNUM_MAJOR: function-like macro
+SDL3/SDL_version.h: SDL_VERSIONNUM_MICRO: function-like macro
+SDL3/SDL_version.h: SDL_VERSIONNUM_MINOR: function-like macro
+SDL3/SDL_version.h: SDL_VERSION_ATLEAST: function-like macro
+SDL3/SDL_video.h: SDL_WINDOWPOS_CENTERED_DISPLAY: function-like macro
+SDL3/SDL_video.h: SDL_WINDOWPOS_ISCENTERED: function-like macro
+SDL3/SDL_video.h: SDL_WINDOWPOS_ISUNDEFINED: function-like macro
+SDL3/SDL_video.h: SDL_WINDOWPOS_UNDEFINED_DISPLAY: function-like macro
+SDL3_image/SDL_image.h: SDL_IMAGE_VERSION_ATLEAST: function-like macro
+SDL3_mixer/SDL_mixer.h: SDL_MIXER_VERSION_ATLEAST: function-like macro
+SDL3_ttf/SDL_ttf.h: SDL_TTF_VERSION_ATLEAST: function-like macro

@@ -127,4 +127,11 @@ public static unsafe partial class Xdl
         *pointer = default;
         pointer->version = (uint)sizeof(SDL_VirtualJoystickDesc);
     }
+
+    public static void SDL_INIT_INTERFACE(Pointer<TTF_TextEngine> iface)
+    {
+        TTF_TextEngine* pointer = iface;
+        *pointer = default;
+        pointer->version = (uint)sizeof(TTF_TextEngine);
+    }
 }

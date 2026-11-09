@@ -1,10 +1,18 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using XdlSharp.Generator;
 
 // Generates the bindings from the headers of the XDL release in XDL_VERSION, which building this project downloads.
 // usage: dotnet run --project tools/XdlSharp.Generator -- [--include <dir>] [--clang <path>] [--check]
-// --check writes nothing and fails when a generated file differs, so CI can tell that the checked-in code is current.
+// --check writes no checked-in file and fails when a generated file differs, so CI can tell that the checked-in code is current.
+
+// The bindings follow the declarations that the headers make for Linux, and other targets see other declarations.
+if (!OperatingSystem.IsLinux())
+{
+    Console.Error.WriteLine("The generator parses the headers for Linux, so it runs only on Linux.");
+    return 1;
+}
 
 string root = FindRepositoryRoot();
 string xdlVersion = File.ReadAllText(Path.Combine(root, "XDL_VERSION")).Trim();
@@ -50,17 +58,52 @@ bool IsBound(string header)
     return headers.Contains(header) && !config.ExcludedHeaders.Contains(header);
 }
 
+Dictionary<string, MacroInfo> macrosByName = macros.ToDictionary(macro => macro.Name);
+
+// SDL_ASSERT_FILE expands to SDL_FILE, which expands to __FILE_NAME__: the probe would bind the name of its own file.
+bool UsesBuiltin(MacroInfo macro, HashSet<string> visited)
+{
+    return macro.Body.Contains("__", StringComparison.Ordinal) || IdentifierPattern().Matches(macro.Body)
+        .Any(match => macrosByName.TryGetValue(match.Value, out MacroInfo? used) && visited.Add(used.Name) && UsesBuiltin(used, visited));
+}
+
+foreach (string name in config.ExcludedMacros.Keys.Where(name => !macrosByName.TryGetValue(name, out MacroInfo? macro) || macro.IsFunctionLike || !IsBound(macro.Header)))
+{
+    problems.Add($"excludedMacros names {name}, which is not an object-like macro of a bound header.");
+}
+
+foreach (string name in config.PortedMacros.Where(name => !macrosByName.TryGetValue(name, out MacroInfo? macro) || !macro.IsFunctionLike || !IsBound(macro.Header)))
+{
+    problems.Add($"portedMacros names {name}, which is not a function-like macro of a bound header.");
+}
+
 // The probe evaluates every candidate macro twice: __auto_type keeps its C type, and an enum makes clang print its value.
 // A macro whose expansion does not compile as an expression is dropped; clang names its line.
 List<MacroInfo> candidates = [];
 foreach (MacroInfo macro in macros.Where(macro => IsBound(macro.Header)))
 {
+    if (macro.IsFunctionLike)
+    {
+        if (!config.PortedMacros.Contains(macro.Name))
+        {
+            skipped.Add($"{macro.Header}: {macro.Name}: function-like macro");
+        }
+
+        continue;
+    }
+
     if (macro.Body.Length == 0)
     {
         continue;
     }
 
-    if (macro.Body.Contains("__", StringComparison.Ordinal))
+    if (config.ExcludedMacros.TryGetValue(macro.Name, out string? reason))
+    {
+        skipped.Add($"{macro.Header}: {macro.Name}: {reason}");
+        continue;
+    }
+
+    if (UsesBuiltin(macro, [macro.Name]))
     {
         skipped.Add($"{macro.Header}: {macro.Name}: uses a compiler builtin");
         continue;
@@ -145,7 +188,8 @@ foreach (MacroInfo macro in candidates)
     bool isFloat = value.Floating != null && type is MPrimitive { CSharp: "float" or "double" };
     if (!isInteger && !isString && !isFloat)
     {
-        skipped.Add($"{macro.Header}: {macro.Name}: a {TypeMapper.Describe(type)}, not an integer, string or floating constant");
+        string reason = type is MPrimitive { CSharp: "float" or "double" } ? "a floating expression, not a literal" : $"a {TypeMapper.Describe(type)}, not an integer, string or floating constant";
+        skipped.Add($"{macro.Header}: {macro.Name}: {reason}");
         continue;
     }
 
@@ -226,9 +270,10 @@ foreach (FunctionInfo function in model.Functions)
     }
 
     List<MType> types = function.Parameters.Select(parameter => mapper.Resolve(parameter.Type)).Prepend(mapper.Resolve(function.Return)).ToList();
-    if (types.Any(TypeMapper.ContainsUnsupported))
+    string? unsupported = types.Select(TypeMapper.FindUnsupported).FirstOrDefault(name => name != null);
+    if (unsupported != null)
     {
-        skipped.Add($"{function.Header}: {function.Name}: takes a va_list");
+        skipped.Add($"{function.Header}: {function.Name}: takes a {unsupported}");
         continue;
     }
 
@@ -253,9 +298,11 @@ foreach (string name in config.ExcludedHeaderFunctions.Where(name => !functions.
 foreach ((string functionName, string parameterName) in config.ReturnsParameter)
 {
     FunctionInfo? function = functions.FirstOrDefault(function => function.Name == functionName);
-    if (function == null || !function.Parameters.Any(parameter => parameter.Name == parameterName))
+    ParameterInfo? parameter = function?.Parameters.FirstOrDefault(parameter => parameter.Name == parameterName);
+    bool isRetained = config.RetainedParameters.GetValueOrDefault(functionName, []).Contains(parameterName);
+    if (function == null || parameter == null || !TypeMapper.IsConstCharPointer(mapper.Resolve(function.Return)) || !TypeMapper.IsConstCharPointer(mapper.Resolve(parameter.Type)) || isRetained)
     {
-        problems.Add($"returnsParameter names {functionName}({parameterName}), which is not a bound function and parameter.");
+        problems.Add($"returnsParameter names {functionName}({parameterName}), which is not a const char * parameter, outside retainedParameters, of a bound function that returns const char *.");
     }
 }
 
@@ -340,7 +387,11 @@ Dictionary<string, string> outputs = [];
 string generatedDirectory = Path.Combine(root, "src", "XdlSharp", "Generated");
 foreach ((string header, HeaderContent content) in contents.OrderBy(pair => pair.Key, StringComparer.Ordinal))
 {
-    outputs[Path.Combine(generatedDirectory, HeaderFile(header))] = writer.Write(content);
+    if (!outputs.TryAdd(Path.Combine(generatedDirectory, HeaderFile(header)), writer.Write(content)))
+    {
+        Console.Error.WriteLine($"{header} and another bound header would both generate {HeaderFile(header)}.");
+        return 1;
+    }
 }
 
 skipped.Sort(StringComparer.Ordinal);
@@ -384,4 +435,10 @@ static string FindRepositoryRoot()
     }
 
     return directory ?? throw new InvalidOperationException("Run the generator inside the XdlSharp repository.");
+}
+
+internal partial class Program
+{
+    [GeneratedRegex(@"\b[A-Za-z_][A-Za-z_0-9]*\b")]
+    private static partial Regex IdentifierPattern();
 }

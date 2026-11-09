@@ -102,9 +102,14 @@ internal sealed class TypeMapper(AstModel model, IReadOnlySet<string> typedefEnu
 
     private MType ResolveNamed(CNamedType named, bool allowMacroOnly)
     {
-        if (named.Name is "wchar_t" or "va_list" or "__builtin_va_list" or "__va_list_tag")
+        if (named.Name is "wchar_t")
         {
             return new MUnsupported(named.Name);
+        }
+
+        if (named.Name is "va_list" or "__builtin_va_list" or "__va_list_tag")
+        {
+            return new MUnsupported("va_list");
         }
 
         if (named.IsTag)
@@ -199,11 +204,6 @@ internal sealed class TypeMapper(AstModel model, IReadOnlySet<string> typedefEnu
             return "bool";
         }
 
-        if (pointee is MFunction)
-        {
-            throw new NotSupportedException("A pointer to a function pointer is not supported.");
-        }
-
         return Render(pointee, usage);
     }
 
@@ -262,21 +262,28 @@ internal sealed class TypeMapper(AstModel model, IReadOnlySet<string> typedefEnu
         };
     }
 
+    // A C array of these becomes a fixed buffer; of anything else, an [InlineArray] struct.
+    public static bool IsFixedBufferElement(MType element)
+    {
+        return element is MPrimitive { CSharp: "bool" or "byte" or "sbyte" or "short" or "ushort" or "int" or "uint" or "long" or "ulong" or "float" or "double" };
+    }
+
     public static bool IsConstCharPointer(MType type)
     {
         return type is MPointer { Pointee: MPrimitive { CName: "char", IsConst: true } };
     }
 
-    public static bool ContainsUnsupported(MType type)
+    // The C name of the first type in type that the binding cannot pass, or null.
+    public static string? FindUnsupported(MType type)
     {
         return type switch
         {
-            MUnsupported => true,
-            MPointer { Pointee: MUnsupported { CName: "wchar_t" } } => false,
-            MPointer pointer => ContainsUnsupported(pointer.Pointee),
-            MArray array => ContainsUnsupported(array.Element),
-            MFunction function => ContainsUnsupported(function.Return) || function.Parameters.Any(ContainsUnsupported),
-            _ => false,
+            MUnsupported unsupported => unsupported.CName,
+            MPointer { Pointee: MUnsupported { CName: "wchar_t" } } => null,
+            MPointer pointer => FindUnsupported(pointer.Pointee),
+            MArray array => FindUnsupported(array.Element),
+            MFunction function => function.Parameters.Prepend(function.Return).Select(FindUnsupported).FirstOrDefault(name => name != null),
+            _ => null,
         };
     }
 }

@@ -28,6 +28,25 @@
     "SDL_realloc",
     "SDL_free"
   ],
+  "excludedMacros": {
+    "SDL_ASSERT_LEVEL": "depends on the flags that compile the C caller",
+    "SDL_NULL_WHILE_LOOP_CONDITION": "a helper for C statement macros"
+  },
+  "portedMacros": [
+    "SDL_PIXELFLAG",
+    "SDL_PIXELTYPE",
+    "SDL_PIXELORDER",
+    "SDL_PIXELLAYOUT",
+    "SDL_BITSPERPIXEL",
+    "SDL_BYTESPERPIXEL",
+    "SDL_ISPIXELFORMAT_INDEXED",
+    "SDL_ISPIXELFORMAT_PACKED",
+    "SDL_ISPIXELFORMAT_ARRAY",
+    "SDL_ISPIXELFORMAT_10BIT",
+    "SDL_ISPIXELFORMAT_FLOAT",
+    "SDL_ISPIXELFORMAT_ALPHA",
+    "SDL_ISPIXELFORMAT_FOURCC"
+  ],
   "typedefConstants": {
     "SDL_BlendMode": {
       "prefixes": [

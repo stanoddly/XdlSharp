@@ -15,6 +15,7 @@ public static unsafe class Checks
     [
         (nameof(LayoutsMatchC), LayoutsMatchC),
         (nameof(BooleansCrossBothWays), BooleansCrossBothWays),
+        (nameof(FloatsCrossBothWays), FloatsCrossBothWays),
         (nameof(StringParametersArriveTerminated), StringParametersArriveTerminated),
         (nameof(StringPropertyReturnsNativeValue), StringPropertyReturnsNativeValue),
         (nameof(StringPropertyReturnsCallerDefault), StringPropertyReturnsCallerDefault),
@@ -64,6 +65,21 @@ public static unsafe class Checks
                 Expect(SDL_GetBooleanProperty(props, "missing"u8, true), "the true default read as false");
                 Expect(!SDL_HasProperty(props, "missing"u8), "SDL_HasProperty returned true for a missing property");
             }
+        }
+        finally
+        {
+            SDL_DestroyProperties(props);
+        }
+    }
+
+    public static void FloatsCrossBothWays()
+    {
+        SDL_PropertiesID props = SDL_CreateProperties();
+        try
+        {
+            Expect(SDL_SetFloatProperty(props, "value"u8, 1.5f), "SDL_SetFloatProperty returned false");
+            Expect(SDL_GetFloatProperty(props, "value"u8, 0) == 1.5f, "the float property read back as another value");
+            Expect(SDL_GetFloatProperty(props, "missing"u8, -2.25f) == -2.25f, "the float default read back as another value");
         }
         finally
         {

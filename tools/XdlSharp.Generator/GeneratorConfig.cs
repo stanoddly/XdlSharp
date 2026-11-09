@@ -16,6 +16,12 @@ internal sealed class GeneratorConfig
     // Functions bound from an excluded header anyway.
     public required List<string> ExcludedHeaderFunctions { get; init; }
 
+    // Constant macros of bound headers that have no meaning in C#: macro to the reason that skipped.txt gives.
+    public required Dictionary<string, string> ExcludedMacros { get; init; }
+
+    // Function-like macros that src/XdlSharp/Xdl.Macros.cs ports by hand, so skipped.txt does not list them.
+    public required List<string> PortedMacros { get; init; }
+
     // An integer typedef becomes a C# enum; these macros become its members.
     public required Dictionary<string, TypedefConstantsConfig> TypedefConstants { get; init; }
 

@@ -10,8 +10,6 @@ internal sealed record HeaderContent(List<EnumInfo> Enums, List<TypedefEnum> Typ
 
 internal sealed class BindingWriter(AstModel model, TypeMapper mapper, GeneratorConfig config)
 {
-    private static readonly HashSet<string> FixedBufferTypes = ["bool", "byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "float", "double"];
-
     // Every complete record written, nested ones included, for the layout checks.
     public List<RecordInfo> WrittenRecords { get; } = [];
 
@@ -153,7 +151,7 @@ internal sealed class BindingWriter(AstModel model, TypeMapper mapper, Generator
             if (type is MArray array)
             {
                 string element = mapper.Render(array.Element, Usage.Field);
-                if (FixedBufferTypes.Contains(element))
+                if (TypeMapper.IsFixedBufferElement(array.Element))
                 {
                     isUnsafe = true;
                     lines.Add($"{prefix}fixed {element} {name}[{array.Length}];");

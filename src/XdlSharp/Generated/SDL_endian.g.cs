@@ -10,5 +10,4 @@ public static unsafe partial class Xdl
 {
     public const int SDL_LIL_ENDIAN = 1234;
     public const int SDL_BIG_ENDIAN = 4321;
-    public const int SDL_FLOATWORDORDER = 1234;
 }

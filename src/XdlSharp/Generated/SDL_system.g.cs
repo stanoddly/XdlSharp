@@ -15,14 +15,14 @@ public enum SDL_Sandbox
     SDL_SANDBOX_MACOS = 4,
 }
 
-public struct _XEvent
+public struct XEvent
 {
 }
 
 public static unsafe partial class Xdl
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void SDL_SetX11EventHook(delegate* unmanaged[Cdecl]<nint, _XEvent*, byte> callback, nint userdata)
+    public static void SDL_SetX11EventHook(delegate* unmanaged[Cdecl]<nint, XEvent*, byte> callback, nint userdata)
     {
         Raw.SDL_SetX11EventHook((nint)callback, userdata);
     }

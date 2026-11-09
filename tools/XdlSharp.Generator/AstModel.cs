@@ -35,7 +35,8 @@ internal sealed class EnumInfo(string? tag, string header)
 
 internal sealed record TypedefInfo(string Name, string Header, CType Underlying, RecordInfo? AnonymousRecord, EnumInfo? AnonymousEnum);
 
-internal sealed record MacroInfo(string Name, string Header, string Body);
+// Body is the text after the name; a function-like macro's starts with its parameters, without the opening parenthesis.
+internal sealed record MacroInfo(string Name, string Header, string Body, bool IsFunctionLike);
 
 // What clang made of a macro in the probe: its C type and, for integers, strings and floats, its value.
 internal sealed record MacroValue(CType Type, Int128? Integer, string? String, string? Floating);

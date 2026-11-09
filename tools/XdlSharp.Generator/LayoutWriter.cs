@@ -36,7 +36,7 @@ internal sealed class LayoutWriter(AstModel model, TypeMapper mapper)
                 c.Append("    { \"").Append(record.CSharpName).Append('.').Append(field.Name).Append("\", ").Append(offset).Append(" },\n");
 
                 string name = CSharpNames.Escape(field.Name);
-                bool isFixedBuffer = field.Type != null && mapper.Resolve(field.Type) is MArray array && IsFixedBuffer(array);
+                bool isFixedBuffer = field.Type != null && mapper.Resolve(field.Type) is MArray array && TypeMapper.IsFixedBufferElement(array.Element);
                 string address = isFixedBuffer ? $"(byte*)value.{name}" : $"(byte*)&value.{name}";
                 csharp.Append("            entries.Add((\"").Append(record.CSharpName).Append('.').Append(field.Name).Append("\", (nuint)(")
                     .Append(address).Append(" - start)));\n");
@@ -55,11 +55,6 @@ internal sealed class LayoutWriter(AstModel model, TypeMapper mapper)
         c.Append("const XdlSharpLayout *xdlsharp_layouts(int *count)\n{\n    *count = (int)(sizeof(layouts) / sizeof(layouts[0]));\n    return layouts;\n}\n");
         csharp.Append("        return entries;\n    }\n}\n");
         return (c.ToString(), csharp.ToString());
-    }
-
-    private bool IsFixedBuffer(MArray array)
-    {
-        return array.Element is MPrimitive;
     }
 
     // A nested anonymous record has no C name: it is measured as a member of the outermost named record.
