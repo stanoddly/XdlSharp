@@ -9,9 +9,8 @@
         <IsPackable>false</IsPackable>
         <PublishTrimmed>false</PublishTrimmed>
         <UsesXdlRelease>true</UsesXdlRelease>
-        <!-- XDL's WebGPU backend is built on the emdawnwebgpu port, which the link builds into a writable cache. -->
-        <WasmCachePath>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..', 'artifacts', 'em-cache'))</WasmCachePath>
-        <EmccExtraLDFlags>$(EmccExtraLDFlags) --use-port=emdawnwebgpu</EmccExtraLDFlags>
+        <!-- XDL's WebGPU backend calls emdawnwebgpu, linked from the release as in XdlSharp.Native.browser-wasm.targets. -->
+        <EmccExtraLDFlags>$(EmccExtraLDFlags) --js-library "$(XdlBrowserDirectory)library_webgpu_enum_tables.js" --js-library "$(XdlBrowserDirectory)library_webgpu_generated_struct_info.js" --js-library "$(XdlBrowserDirectory)library_webgpu_generated_sig_info.js" --js-library "$(XdlBrowserDirectory)library_webgpu.js"</EmccExtraLDFlags>
     </PropertyGroup>
 
     <!-- Paths, not globs: the release is fetched during the build, before the native link checks that they exist. -->
@@ -20,6 +19,7 @@
         <NativeFileReference Include="$(XdlBrowserDirectory)XDL3_image.a" />
         <NativeFileReference Include="$(XdlBrowserDirectory)XDL3_ttf.a" />
         <NativeFileReference Include="$(XdlBrowserDirectory)XDL3_mixer.a" />
+        <NativeFileReference Include="$(XdlBrowserDirectory)emdawnwebgpu.a" ScanForPInvokes="false" />
     </ItemGroup>
 
     <ItemGroup>

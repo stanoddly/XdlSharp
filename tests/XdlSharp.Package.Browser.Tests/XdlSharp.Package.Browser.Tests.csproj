@@ -10,7 +10,6 @@
         <IsPackable>false</IsPackable>
         <PublishTrimmed>false</PublishTrimmed>
         <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
-        <WasmCachePath>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..', 'artifacts', 'em-cache'))</WasmCachePath>
     </PropertyGroup>
 
     <ItemGroup>

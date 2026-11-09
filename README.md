@@ -14,7 +14,7 @@ Pointer<SDL_Window> window = SDL_CreateWindow("Title"u8, 640, 480, SDL_WindowFla
 
 - `XdlSharp` holds the bindings. It is the same for every platform and holds no native library.
 - `XdlSharp.Native.<rid>` holds XDL's runtime for one platform, from the XDL release: `linux-x64`, `linux-arm64`, `osx-x64`, `osx-arm64`, `win-x64`, `win-arm64` or `browser-wasm`. An app references the packages of the platforms it runs on.
-- `XdlSharp.Native.browser-wasm` links its archives into `dotnet.native.wasm` and adds `--use-port=emdawnwebgpu` to the link. The link builds that Emscripten port into the Emscripten cache. The workload's own cache is read-only, so set `WasmCachePath` to a writable directory.
+- `XdlSharp.Native.browser-wasm` links its archives into `dotnet.native.wasm`, with emdawnwebgpu, the WebGPU binding that XDL calls, which XDL ships prebuilt. The link needs the `wasm-tools` workload and no writable Emscripten cache. To create a GPU device from the page, as the .NET runtime requires, also export `WebGPU` with `EmccExportedRuntimeMethod` and `_wgpuCreateInstance` with `EmccExportedFunction`.
 
 The version is the SDL version and a release number, such as `3.4.20.1`. The package description names the XDL release, such as `3.4.20-4`.
 
