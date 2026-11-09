@@ -1,7 +1,6 @@
 <Project>
     <PropertyGroup>
         <XdlRuntimeDirectory>$(XdlReleaseDirectory)runtimes/$(NETCoreSdkPortableRuntimeIdentifier)/native/</XdlRuntimeDirectory>
-        <XdlBrowserDirectory>$(XdlReleaseDirectory)runtimes/browser-wasm/native/</XdlBrowserDirectory>
         <!-- The headers, the runtime for this machine and the browser archives, unless a project names other XDL targets. -->
         <XdlReleaseTargets Condition="'$(XdlReleaseTargets)' == ''">headers;$(NETCoreSdkPortableRuntimeIdentifier);browser-wasm-net11</XdlReleaseTargets>
     </PropertyGroup>

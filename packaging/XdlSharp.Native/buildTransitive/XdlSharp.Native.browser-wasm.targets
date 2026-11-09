@@ -1,14 +1,16 @@
 <Project>
     <!--
       The browser runtime links the archives into dotnet.native.wasm instead of loading them, and each archive's file name is its
-      P/Invoke module, such as XDL3. XDL's WebGPU backend is built on Emscripten's emdawnwebgpu port, which the link fetches and builds
-      into the Emscripten cache, so WasmCachePath must name a writable cache.
+      P/Invoke module, such as XDL3. XDL's WebGPU backend calls emdawnwebgpu, which XDL ships prebuilt as emdawnwebgpu.a, no P/Invoke
+      module, and four JavaScript libraries. Linking them instead of Emscripten's emdawnwebgpu port keeps the link inside the workload's
+      read-only Emscripten cache, which the port would build into. library_webgpu.js reads the tables of the other three, so it comes last.
     -->
     <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
-        <NativeFileReference Include="$(MSBuildThisFileDirectory)native/*.a" />
+        <NativeFileReference Include="$(MSBuildThisFileDirectory)native/*.a" Exclude="$(MSBuildThisFileDirectory)native/emdawnwebgpu.a" />
+        <NativeFileReference Include="$(MSBuildThisFileDirectory)native/emdawnwebgpu.a" ScanForPInvokes="false" />
     </ItemGroup>
 
     <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
-        <EmccExtraLDFlags>$(EmccExtraLDFlags) --use-port=emdawnwebgpu</EmccExtraLDFlags>
+        <EmccExtraLDFlags>$(EmccExtraLDFlags) --js-library "$(MSBuildThisFileDirectory)native/library_webgpu_enum_tables.js" --js-library "$(MSBuildThisFileDirectory)native/library_webgpu_generated_struct_info.js" --js-library "$(MSBuildThisFileDirectory)native/library_webgpu_generated_sig_info.js" --js-library "$(MSBuildThisFileDirectory)native/library_webgpu.js"</EmccExtraLDFlags>
     </PropertyGroup>
 </Project>

@@ -13,6 +13,8 @@
         <XdlSdlVersion>$(XdlVersion.Split('-')[0])</XdlSdlVersion>
         <XdlReleaseDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', 'artifacts', 'xdl', '$(XdlVersion)'))</XdlReleaseDirectory>
         <XdlIncludeDirectory>$(XdlReleaseDirectory)include/</XdlIncludeDirectory>
+        <!-- Here and not in Directory.Build.targets, because a project's properties, such as EmccExtraLDFlags, read it. -->
+        <XdlBrowserDirectory>$(XdlReleaseDirectory)runtimes/browser-wasm/native/</XdlBrowserDirectory>
     </PropertyGroup>
 
     <!-- A release passes -p:Version=<SDL version>.<N>; any other pack is marked local, so it never passes for a release. -->
