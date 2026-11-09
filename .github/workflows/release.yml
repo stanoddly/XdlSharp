@@ -10,10 +10,11 @@ on:
 permissions:
   contents: read
 
-# Two runs at once would take the same N.
+# Two runs at once would take the same N. By default a new run cancels a pending one, so its merge would have no release of its own.
 concurrency:
   group: release
   cancel-in-progress: false
+  queue: max
 
 jobs:
   resolve:
@@ -26,19 +27,22 @@ jobs:
     steps:
       # A shallow checkout has no tags, so every run would take N = 1.
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Find the version
         id: version
         run: |
-          if [[ -n "$(git tag --points-at HEAD 'v*')" ]]; then
-            echo "$(git tag --points-at HEAD 'v*') is released already."
+          sdl_version=$(cut -d- -f1 XDL_VERSION)
+          # The queue does not keep the order of the runs. A later commit released for the same SDL version contains this one, so this
+          # release would publish older code as a newer version.
+          released=$(git tag --contains HEAD "v$sdl_version.*")
+          if [[ -n "$released" ]]; then
+            echo "Released already in ${released//$'\n'/, }."
             exit 0
           fi
 
-          sdl_version=$(cut -d- -f1 XDL_VERSION)
           last=0
           for tag in $(git tag --list "v$sdl_version.*"); do
             n=${tag#"v$sdl_version."}
@@ -55,28 +59,42 @@ jobs:
     with:
       version: ${{ needs.resolve.outputs.version }}
 
+  # Without a checkout or contents: write, so the steps that can get a push key from nuget.org hold no token that writes to the repository.
   publish:
     needs: [resolve, build]
     runs-on: ubuntu-24.04
     permissions:
-      contents: write
       # Trusted Publishing: nuget.org exchanges this workflow's OIDC token for a short-lived API key.
       id-token: write
     env:
       VERSION: ${{ needs.resolve.outputs.version }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Download the packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: packages
           path: packages
 
+      # A tag push that failed after the packages were published leaves N untagged, and the next merge would take it again. The push would
+      # skip every package nuget.org has as a duplicate, and the tag would name a commit whose code is not on nuget.org.
+      - name: Check that nuget.org has no other commit as this version
+        run: |
+          for package in packages/*.nupkg; do
+            id=$(basename "$package" ".$VERSION.nupkg")
+            id=${id,,}
+            status=$(curl -sS -o nuspec -w '%{http_code}' "https://api.nuget.org/v3-flatcontainer/$id/$VERSION/$id.nuspec")
+            if [[ "$status" == 200 ]] && ! grep -q "commit=\"$GITHUB_SHA\"" nuspec; then
+              echo "nuget.org has $id $VERSION from another commit. Tag that commit v$VERSION, then run Release on main again, not only its failed jobs." >&2
+              exit 1
+            elif [[ "$status" != 200 && "$status" != 404 ]]; then
+              echo "nuget.org answered $status for $id $VERSION." >&2
+              exit 1
+            fi
+          done
+
       - name: Install the .NET 11 preview SDK
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '11.0.x'
           dotnet-quality: 'preview'
@@ -92,8 +110,23 @@ jobs:
           NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: dotnet nuget push "packages/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
 
-      # After the push, so a tag always names a published version.
+  # After the push, so a tag always names a published version.
+  tag:
+    needs: [resolve, publish]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: v${{ needs.resolve.outputs.version }}
+
+    steps:
+      # A rerun after the tag was created finds it on this commit.
       - name: Tag the release
         run: |
-          git tag "v$VERSION" "$GITHUB_SHA"
-          git push origin "v$VERSION"
+          tagged=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" -q .object.sha 2>/dev/null || true)
+          if [[ "$tagged" == "$GITHUB_SHA" ]]; then
+            echo "$TAG is on this commit already."
+          else
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA"
+          fi

@@ -3,6 +3,7 @@
     <!--
       Packs the runtime of one XDL target as XdlSharp.Native.<rid>, with the files of its release zip at the same paths:
       dotnet pack packaging/XdlSharp.Native -p:XdlRuntimeIdentifier=linux-x64
+      The browser archives go next to the targets that link them instead: under runtimes/, NuGet would copy them into every app's output.
     -->
     <PropertyGroup>
         <PackageId>XdlSharp.Native.$(XdlRuntimeIdentifier)</PackageId>
@@ -14,12 +15,19 @@
         <XdlReleaseTargets>$(XdlTarget)</XdlReleaseTargets>
         <!-- XDL's zlib license and the licenses of the third-party code in its libraries. -->
         <PackageLicenseFile>THIRD-PARTY-NOTICES.txt</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <IncludeBuildOutput>false</IncludeBuildOutput>
+        <XdlRuntimePackagePath>runtimes/$(XdlRuntimeIdentifier)/native/</XdlRuntimePackagePath>
+        <XdlRuntimePackagePath Condition="'$(XdlRuntimeIdentifier)' == 'browser-wasm'">buildTransitive/native/</XdlRuntimePackagePath>
         <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
         <!-- The package has no lib folder, so it suits every target framework. -->
         <NoWarn>$(NoWarn);NU5128</NoWarn>
         <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddXdlRuntimeToPackage</TargetsForTfmSpecificContentInPackage>
     </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="../../README.md" Pack="true" PackagePath="/" />
+    </ItemGroup>
 
     <ItemGroup Condition="'$(XdlRuntimeIdentifier)' == 'browser-wasm'">
         <None Include="buildTransitive/XdlSharp.Native.browser-wasm.targets" Pack="true" PackagePath="buildTransitive/$(PackageId).targets" />
@@ -30,7 +38,7 @@
         <Error Condition="'$(XdlRuntimeIdentifier)' == ''" Text="Set XdlRuntimeIdentifier to the runtime to pack, such as linux-x64." />
         <ItemGroup>
             <_XdlRuntimeFile Include="$(XdlReleaseDirectory)runtimes/$(XdlRuntimeIdentifier)/native/*" />
-            <TfmSpecificPackageFile Include="@(_XdlRuntimeFile)" PackagePath="runtimes/$(XdlRuntimeIdentifier)/native/" />
+            <TfmSpecificPackageFile Include="@(_XdlRuntimeFile)" PackagePath="$(XdlRuntimePackagePath)" />
             <TfmSpecificPackageFile Include="$(XdlReleaseDirectory)THIRD-PARTY-NOTICES.txt" PackagePath="/" />
         </ItemGroup>
         <Error Condition="'@(_XdlRuntimeFile)' == ''" Text="The XDL release has no runtime for $(XdlRuntimeIdentifier) in $(XdlReleaseDirectory)runtimes/." />

@@ -5,7 +5,7 @@
       into the Emscripten cache, so WasmCachePath must name a writable cache.
     -->
     <ItemGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">
-        <NativeFileReference Include="$(MSBuildThisFileDirectory)../runtimes/browser-wasm/native/*.a" />
+        <NativeFileReference Include="$(MSBuildThisFileDirectory)native/*.a" />
     </ItemGroup>
 
     <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">

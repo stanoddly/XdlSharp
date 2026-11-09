@@ -7,7 +7,7 @@ on:
   workflow_call:
     inputs:
       version:
-        description: The version of the packages, <SDL version>.<N>. Without it the packages are marked local.
+        description: The version of the packages, <SDL version>.<N>. Without it the version is marked local.
         required: false
         type: string
 
@@ -21,10 +21,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install the .NET 11 preview SDK
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '11.0.x'
           dotnet-quality: 'preview'
@@ -47,7 +47,7 @@ jobs:
         run: tools/pack.sh artifacts/packages "$VERSION"
 
       - name: Upload the packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: packages
           path: artifacts/packages
@@ -59,10 +59,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install the .NET 11 preview SDK
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '11.0.x'
           dotnet-quality: 'preview'
@@ -75,4 +75,76 @@ jobs:
 
       - name: Run the browser tests
         working-directory: tests/XdlSharp.Browser.Tests/bin/Release/net11.0/publish/wwwroot
+        run: node main.mjs
+
+  # The packages as an app restores them, on each platform that has a hosted runner. osx-x64 and win-arm64 have none.
+  packages:
+    name: Run the packages on ${{ matrix.os }}
+    needs: desktop
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download the packages
+        uses: actions/download-artifact@v8
+        with:
+          name: packages
+          path: packages
+
+      - name: Install the .NET 11 preview SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Run the packages
+        shell: bash
+        run: |
+          version=$(basename packages/XdlSharp.[0-9]*.nupkg .nupkg)
+          dotnet run --project tests/XdlSharp.Package.Tests "-p:XdlSharpPackageVersion=${version#XdlSharp.}" "-p:RestoreAdditionalProjectSources=$GITHUB_WORKSPACE/packages"
+
+  packages-browser:
+    name: Run the packages in the browser runtime
+    needs: desktop
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download the packages
+        uses: actions/download-artifact@v8
+        with:
+          name: packages
+          path: packages
+
+      - name: Install the .NET 11 preview SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Install the wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      - name: Publish the packages in a browser app
+        run: |
+          version=$(basename packages/XdlSharp.[0-9]*.nupkg .nupkg)
+          dotnet publish tests/XdlSharp.Package.Browser.Tests "-p:XdlSharpPackageVersion=${version#XdlSharp.}" "-p:RestoreAdditionalProjectSources=$GITHUB_WORKSPACE/packages"
+
+      # The archives are linked into dotnet.native.wasm, so a copy in the output means the package puts them where NuGet copies files.
+      - name: Check that no archive is in the published app
+        run: |
+          if find tests/XdlSharp.Package.Browser.Tests/bin/Release/net11.0/publish -name '*.a' | grep .; then
+            exit 1
+          fi
+
+      - name: Run the browser app
+        working-directory: tests/XdlSharp.Package.Browser.Tests/bin/Release/net11.0/publish/wwwroot
         run: node main.mjs

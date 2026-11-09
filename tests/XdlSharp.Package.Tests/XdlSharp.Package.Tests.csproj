@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!--
+      Runs the packed XdlSharp and the native package of this machine, as an app restores them from a feed. XdlSharpPackageVersion names
+      their version and RestoreAdditionalProjectSources the directory that holds them. It is not in the solution, because it builds only
+      once the packages exist.
+    -->
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <IsPackable>false</IsPackable>
+        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="XdlSharp" Version="[$(XdlSharpPackageVersion)]" />
+        <PackageReference Include="XdlSharp.Native.$(NETCoreSdkPortableRuntimeIdentifier)" Version="[$(XdlSharpPackageVersion)]" />
+    </ItemGroup>
+
+    <Target Name="RequirePackageVersion" BeforeTargets="CollectPackageReferences" Condition="'$(XdlSharpPackageVersion)' == ''">
+        <Error Text="Set XdlSharpPackageVersion to the version of the packages to run." />
+    </Target>
+
+</Project>

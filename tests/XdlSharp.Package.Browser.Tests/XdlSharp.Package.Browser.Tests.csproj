@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+
+    <!--
+      Runs the packed XdlSharp and XdlSharp.Native.browser-wasm on Mono in the browser runtime, under Node:
+      dotnet publish tests/XdlSharp.Package.Browser.Tests -p:XdlSharpPackageVersion=<version> -p:RestoreAdditionalProjectSources=<packages>
+      and node bin/Release/net11.0/publish/wwwroot/main.mjs. It is not in the solution, because it builds only once the packages exist.
+    -->
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <IsPackable>false</IsPackable>
+        <PublishTrimmed>false</PublishTrimmed>
+        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+        <WasmCachePath>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..', 'artifacts', 'em-cache'))</WasmCachePath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="../XdlSharp.Package.Tests/Program.cs" />
+        <PackageReference Include="XdlSharp" Version="[$(XdlSharpPackageVersion)]" />
+        <PackageReference Include="XdlSharp.Native.browser-wasm" Version="[$(XdlSharpPackageVersion)]" />
+    </ItemGroup>
+
+    <Target Name="RequirePackageVersion" BeforeTargets="CollectPackageReferences" Condition="'$(XdlSharpPackageVersion)' == ''">
+        <Error Text="Set XdlSharpPackageVersion to the version of the packages to run." />
+    </Target>
+
+</Project>
