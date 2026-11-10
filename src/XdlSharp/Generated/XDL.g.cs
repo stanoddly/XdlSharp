@@ -20,9 +20,17 @@ public static unsafe partial class Xdl
         return Raw.XDL_SetWindowMousePassthroughEvents(window, enabled ? (byte)1 : (byte)0) != 0;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool XDL_SetWindowInputRegion(Pointer<SDL_Window> window, Pointer<SDL_Rect> rects, int count)
+    {
+        return Raw.XDL_SetWindowInputRegion(window, rects, count) != 0;
+    }
+
     private static unsafe partial class Raw
     {
         [DllImport("XDL3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern byte XDL_SetWindowMousePassthroughEvents(SDL_Window* window, byte enabled);
+        [DllImport("XDL3", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern byte XDL_SetWindowInputRegion(SDL_Window* window, SDL_Rect* rects, int count);
     }
 }
