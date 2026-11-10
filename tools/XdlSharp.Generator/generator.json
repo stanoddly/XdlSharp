@@ -5,6 +5,7 @@
     "SDL3_image/SDL_image.h",
     "SDL3_ttf/SDL_ttf.h",
     "SDL3_ttf/SDL_textengine.h",
+    "SDL3_ttf/XDL_ttf.h",
     "SDL3_mixer/SDL_mixer.h"
   ],
   "libraries": {
