@@ -13,6 +13,10 @@ public static unsafe partial class Xdl
     public static ReadOnlySpan<byte> XDL_PROP_GPU_DEVICE_CREATE_WEBGPU_ADAPTER_POINTER => "XDL.gpu.device.create.webgpu.adapter"u8;
     public static ReadOnlySpan<byte> XDL_PROP_GPU_DEVICE_CREATE_WEBGPU_DEVICE_POINTER => "XDL.gpu.device.create.webgpu.device"u8;
     public static ReadOnlySpan<byte> XDL_PROP_GPU_DEVICE_CREATE_WEBGPU_BINDGROUP_EXPIRE_AFTER_N_SUBMITS => "XDL.gpu.device.create.webgpu.bindgroupexpiry"u8;
+    public static ReadOnlySpan<byte> XDL_PROP_GPU_BUFFER_CREATE_STRIDE_NUMBER => "XDL.gpu.buffer.create.stride"u8;
+    public static ReadOnlySpan<byte> XDL_PROP_GPU_SHADER_CREATE_STRUCTURED_STORAGE_BUFFERS_NUMBER => "XDL.gpu.shader.create.structuredstoragebuffers"u8;
+    public static ReadOnlySpan<byte> XDL_PROP_GPU_COMPUTEPIPELINE_CREATE_STRUCTURED_READONLY_STORAGE_BUFFERS_NUMBER => "XDL.gpu.computepipeline.create.structuredreadonlystoragebuffers"u8;
+    public static ReadOnlySpan<byte> XDL_PROP_GPU_COMPUTEPIPELINE_CREATE_STRUCTURED_READWRITE_STORAGE_BUFFERS_NUMBER => "XDL.gpu.computepipeline.create.structuredreadwritestoragebuffers"u8;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool XDL_SetWindowMousePassthroughEvents(Pointer<SDL_Window> window, bool enabled)
